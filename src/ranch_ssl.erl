@@ -99,9 +99,9 @@ accept(LSocket, Timeout) ->
 
 -spec accept_ack(ssl:sslsocket(), timeout()) -> ok.
 accept_ack(CSocket, Timeout) ->
-	case ssl:ssl_accept(CSocket, Timeout) of
-		ok ->
-			ok;
+	case ssl:handshake(CSocket, Timeout) of
+		{ok, _} -> ok;
+		{ok, _, _} -> ok;
 		%% Garbage was most likely sent to the socket, don't error out.
 		{error, {tls_alert, _}} ->
 			ok = close(CSocket),
@@ -204,7 +204,7 @@ unbroken_cipher_suites() ->
 		Version when Version =:= "5.3"; Version =:= "5.3.1" ->
 			lists:filter(fun(Suite) ->
 				string:left(atom_to_list(element(1, Suite)), 4) =/= "ecdh"
-			end, ssl:cipher_suites());
+			end, ssl:cipher_suites(all, tlsv1));
 		_ ->
-			ssl:cipher_suites()
+			ssl:cipher_suites(all, tlsv1)
 	end.
